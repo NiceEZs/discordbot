@@ -68,29 +68,36 @@ cp .env.example .env
 docker compose up -d
 
 # Wygeneruj klienta Prisma + wypchnij schemat do DB
+# (skrypty ładują root `.env` przez dotenv-cli — wymagany `DATABASE_URL`)
 npm run db:generate
 npm run db:push
 
-# Zarejestruj slash commands (wymaga DISCORD_TOKEN + DISCORD_CLIENT_ID)
-npm run register-commands -w @nice-hvh/bot
+# Zarejestruj slash commands (najpierw buduje @nice-hvh/db → dist/)
+# Wymaga DISCORD_TOKEN + DISCORD_CLIENT_ID w `.env`
+npm run register-commands
 
-# Terminal A — bot
+# Terminal A — bot (też buduje @nice-hvh/db przed startem)
 npm run dev:bot
 
 # Terminal B — panel (domyślnie http://localhost:3000)
 npm run dev:web
 ```
 
-Panel na porcie **3001** / dostęp z LAN (po PR z `next start`/`dev` bez hardcodu 3000,
-albo z aktualnym skryptem + override):
+Panel nasłuchuje na porcie **3000** (domyślny Next.js). Jeśli 3000 jest zajęte (np. Cloudflare), albo chcesz dostęp z LAN:
 
 ```bash
-# Z roota monorepo — LAN bind + port 3001
+# Inny port (z roota monorepo)
+npm run dev -w @nice-hvh/web -- --port 3001
+
+# LAN — bind na wszystkie interfejsy (telefon / inna maszyna w sieci)
 npm run dev -w @nice-hvh/web -- --hostname 0.0.0.0 --port 3001
+
+# Albo z katalogu apps/web
+cd apps/web && npm run dev -- --hostname 0.0.0.0 --port 3001
 ```
 
-W `.env` ustaw `NEXTAUTH_URL=http://192.168.55.48:3001` (ten sam origin co w przeglądarce)
-i dodaj Redirect URL w Discord Developer Portal:
+W `.env` ustaw `NEXTAUTH_URL` na ten sam origin co w przeglądarce
+(np. `http://192.168.55.48:3001`) i dodaj Redirect URL w Discord Developer Portal:
 `http://192.168.55.48:3001/api/auth/callback/discord`.
 
 ### Przydatne komendy
@@ -101,6 +108,7 @@ i dodaj Redirect URL w Discord Developer Portal:
 | `npm run build` | Build db + bot + web |
 | `npm run db:studio` | Prisma Studio |
 | `npm run db:migrate` | Migracje Prisma (`migrate dev`) |
+| `npm run register-commands` | Build `@nice-hvh/db` + rejestracja slash commands |
 
 ### Komendy bota (slash)
 

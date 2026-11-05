@@ -8,6 +8,8 @@
     "start": "node dist/index.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "predev": "npm run build -w @nice-hvh/db",
+    "preregister-commands": "npm run build -w @nice-hvh/db",
     "register-commands": "tsx src/register-commands.ts"
   },
   "dependencies": {

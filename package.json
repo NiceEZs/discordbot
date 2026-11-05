@@ -8,14 +8,18 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:bot": "npm run dev -w @nice-hvh/bot",
-    "dev:web": "npm run dev -w @nice-hvh/web",
+    "dev:bot": "dotenv -e .env -- npm run dev -w @nice-hvh/bot",
+    "dev:web": "dotenv -e .env -- npm run dev -w @nice-hvh/web",
     "build": "npm run build -w @nice-hvh/db && npm run build -w @nice-hvh/bot && npm run build -w @nice-hvh/web",
     "typecheck": "npm run build -w @nice-hvh/db && npm run typecheck -w @nice-hvh/bot && npm run typecheck -w @nice-hvh/web",
     "db:generate": "npm run generate -w @nice-hvh/db",
     "db:migrate": "npm run migrate -w @nice-hvh/db",
     "db:push": "npm run push -w @nice-hvh/db",
-    "db:studio": "npm run studio -w @nice-hvh/db"
+    "db:studio": "npm run studio -w @nice-hvh/db",
+    "register-commands": "dotenv -e .env -- npm run register-commands -w @nice-hvh/bot"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0"
   },
   "engines": {
     "node": ">=20"
