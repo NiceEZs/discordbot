@@ -1,0 +1,29 @@
+[Unit]
+Description=Nice HVH Discord panel WWW (Next.js)
+Documentation=https://github.com/NiceEZs/discordbot
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nice
+Group=nice
+WorkingDirectory=/home/nice/discordbot
+# systemd nie rozwija ~ — pełna ścieżka do .env (sekrety NIE w repo)
+EnvironmentFile=/home/nice/discordbot/.env
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=HOSTNAME=0.0.0.0
+ExecStart=/home/nice/discordbot/scripts/prod-start-web.sh
+Restart=always
+RestartSec=5
+# Logi: journalctl -u discordbot-web -f
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=discordbot-web
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
