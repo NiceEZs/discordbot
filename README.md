@@ -31,7 +31,11 @@ packages/db   — Prisma schema + client
 
 1. **New Application** → nadaj nazwę bota.
 2. Zakładka **Bot** → Add Bot → skopiuj **Bot Token** → wklej do `.env` jako `DISCORD_TOKEN`.
-3. Włącz **Server Members Intent** (Bot → Privileged Gateway Intents), jeśli chcesz pełniejszą moderację członków.
+3. **Privileged Gateway Intents (MVP):** zostaw **wyłączone**
+   (**Server Members Intent**, **Message Content Intent**, **Presence Intent**).
+   Bot MVP używa tylko intentu `Guilds` + slash commands; fetch członka po ID
+   działa bez Server Members Intent. Włączenie intentu w kodzie bez przełącznika
+   w Portalu kończy się crashem `Used disallowed intents`.
 4. Zakładka **OAuth2** → **Client ID** i **Client Secret** → `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`.
 5. OAuth2 → Redirects → dodaj **dokładnie** ten sam URL co zbuduje NextAuth
    (`{NEXTAUTH_URL}/api/auth/callback/discord`), np.:
@@ -46,6 +50,12 @@ packages/db   — Prisma schema + client
    - Scopes: `bot`, `applications.commands`
    - Permissions: `Kick Members`, `Ban Members`, `Moderate Members`, `Manage Messages`, `Send Messages`, `Embed Links`, `View Channels`
 7. Otwórz wygenerowany link i zaproś bota na serwer testowy.
+
+**Później (Phase 2+):** jeśli dodasz eventy `guildMemberAdd` / pełną listę członków
+albo czytanie treści wiadomości (automod), wtedy w Portalu włącz
+**Bot → Privileged Gateway Intents → Server Members Intent** i/lub
+**Message Content Intent**, a dopiero potem dodaj odpowiadające `GatewayIntentBits`
+w `apps/bot/src/index.ts`.
 
 **Nie wklejaj tokenów do czatu, PR ani publicznego repo.** Tylko lokalny `.env` / sekrety na serwerze.
 

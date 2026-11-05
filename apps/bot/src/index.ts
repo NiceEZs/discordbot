@@ -3,7 +3,6 @@ import {
   Collection,
   Events,
   GatewayIntentBits,
-  Partials,
 } from "discord.js";
 import { env } from "./env";
 import { commandMap, type Command } from "./commands";
@@ -12,17 +11,18 @@ import { onGuildCreate } from "./events/guildCreate";
 
 // Phase 2+: leveling, tickets, automod, logging
 // Phase 3: music — nie implementować w MVP
+//
+// MVP slash moderation only needs Guilds. Do NOT request privileged intents
+// (GuildMembers / MessageContent) unless they are also enabled in the Discord
+// Developer Portal — otherwise the gateway closes with "Used disallowed intents".
+// Member lookups for /warn /mute /kick /ban use REST fetch-by-id and work without
+// Server Members Intent.
 
 async function main() {
   env.databaseUrl();
 
   const client = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.GuildModeration,
-    ],
-    partials: [Partials.GuildMember],
+    intents: [GatewayIntentBits.Guilds],
   });
 
   const commands = new Collection<string, Command>();
