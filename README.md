@@ -33,9 +33,15 @@ packages/db   — Prisma schema + client
 2. Zakładka **Bot** → Add Bot → skopiuj **Bot Token** → wklej do `.env` jako `DISCORD_TOKEN`.
 3. Włącz **Server Members Intent** (Bot → Privileged Gateway Intents), jeśli chcesz pełniejszą moderację członków.
 4. Zakładka **OAuth2** → **Client ID** i **Client Secret** → `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`.
-5. OAuth2 → Redirects → dodaj:
-   - lokalnie: `http://localhost:3000/api/auth/callback/discord`
-   - produkcja: `https://TWOJA-DOMENA/api/auth/callback/discord`
+5. OAuth2 → Redirects → dodaj **dokładnie** ten sam URL co zbuduje NextAuth
+   (`{NEXTAUTH_URL}/api/auth/callback/discord`), np.:
+   - lokalnie (port 3001): `http://localhost:3001/api/auth/callback/discord`
+   - LAN (Ubuntu): `http://192.168.55.48:3001/api/auth/callback/discord`
+   - produkcja HTTPS: `https://TWOJA-DOMENA/api/auth/callback/discord`
+   
+   `NEXTAUTH_URL` w `.env` musi być tym samym originem (host + port), pod którym
+   otwierasz panel. To jest NextAuth **v4** → zmienne `NEXTAUTH_*` / `DISCORD_CLIENT_*`
+   (nie `AUTH_URL` / `AUTH_SECRET` / `AUTH_TRUST_HOST` z Auth.js v5).
 6. **Invite URL** (OAuth2 → URL Generator):
    - Scopes: `bot`, `applications.commands`
    - Permissions: `Kick Members`, `Ban Members`, `Moderate Members`, `Manage Messages`, `Send Messages`, `Embed Links`, `View Channels`
@@ -90,7 +96,9 @@ npm run dev -w @nice-hvh/web -- --hostname 0.0.0.0 --port 3001
 cd apps/web && npm run dev -- --hostname 0.0.0.0 --port 3001
 ```
 
-Ustaw też `NEXTAUTH_URL` w `.env` na ten sam publiczny URL/port (np. `http://192.168.x.x:3001`) i dodaj ten redirect w Discord Developer Portal.
+W `.env` ustaw `NEXTAUTH_URL` na ten sam origin co w przeglądarce
+(np. `http://192.168.55.48:3001`) i dodaj Redirect URL w Discord Developer Portal:
+`http://192.168.55.48:3001/api/auth/callback/discord`.
 
 ### Przydatne komendy
 
