@@ -33,9 +33,15 @@ packages/db   — Prisma schema + client
 2. Zakładka **Bot** → Add Bot → skopiuj **Bot Token** → wklej do `.env` jako `DISCORD_TOKEN`.
 3. Włącz **Server Members Intent** (Bot → Privileged Gateway Intents), jeśli chcesz pełniejszą moderację członków.
 4. Zakładka **OAuth2** → **Client ID** i **Client Secret** → `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`.
-5. OAuth2 → Redirects → dodaj:
-   - lokalnie: `http://localhost:3000/api/auth/callback/discord`
-   - produkcja: `https://TWOJA-DOMENA/api/auth/callback/discord`
+5. OAuth2 → Redirects → dodaj **dokładnie** ten sam URL co zbuduje NextAuth
+   (`{NEXTAUTH_URL}/api/auth/callback/discord`), np.:
+   - lokalnie (port 3001): `http://localhost:3001/api/auth/callback/discord`
+   - LAN (Ubuntu): `http://192.168.55.48:3001/api/auth/callback/discord`
+   - produkcja HTTPS: `https://TWOJA-DOMENA/api/auth/callback/discord`
+   
+   `NEXTAUTH_URL` w `.env` musi być tym samym originem (host + port), pod którym
+   otwierasz panel. To jest NextAuth **v4** → zmienne `NEXTAUTH_*` / `DISCORD_CLIENT_*`
+   (nie `AUTH_URL` / `AUTH_SECRET` / `AUTH_TRUST_HOST` z Auth.js v5).
 6. **Invite URL** (OAuth2 → URL Generator):
    - Scopes: `bot`, `applications.commands`
    - Permissions: `Kick Members`, `Ban Members`, `Moderate Members`, `Manage Messages`, `Send Messages`, `Embed Links`, `View Channels`
@@ -71,9 +77,21 @@ npm run register-commands -w @nice-hvh/bot
 # Terminal A — bot
 npm run dev:bot
 
-# Terminal B — panel (http://localhost:3000)
+# Terminal B — panel (domyślnie http://localhost:3000)
 npm run dev:web
 ```
+
+Panel na porcie **3001** / dostęp z LAN (po PR z `next start`/`dev` bez hardcodu 3000,
+albo z aktualnym skryptem + override):
+
+```bash
+# Z roota monorepo — LAN bind + port 3001
+npm run dev -w @nice-hvh/web -- --hostname 0.0.0.0 --port 3001
+```
+
+W `.env` ustaw `NEXTAUTH_URL=http://192.168.55.48:3001` (ten sam origin co w przeglądarce)
+i dodaj Redirect URL w Discord Developer Portal:
+`http://192.168.55.48:3001/api/auth/callback/discord`.
 
 ### Przydatne komendy
 
