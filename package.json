@@ -11,12 +11,19 @@
     "dev:bot": "dotenv -e .env -- npm run dev -w @nice-hvh/bot",
     "dev:web": "dotenv -e .env -- npm run dev -w @nice-hvh/web",
     "build": "npm run build -w @nice-hvh/db && npm run build -w @nice-hvh/bot && npm run build -w @nice-hvh/web",
+    "start:bot": "npm run start -w @nice-hvh/bot",
+    "start:web": "npm run start -w @nice-hvh/web -- --hostname 0.0.0.0 --port 3001",
     "typecheck": "npm run build -w @nice-hvh/db && npm run typecheck -w @nice-hvh/bot && npm run typecheck -w @nice-hvh/web",
     "db:generate": "npm run generate -w @nice-hvh/db",
     "db:migrate": "npm run migrate -w @nice-hvh/db",
+    "db:migrate:deploy": "npm run migrate:deploy -w @nice-hvh/db",
     "db:push": "npm run push -w @nice-hvh/db",
     "db:studio": "npm run studio -w @nice-hvh/db",
-    "register-commands": "dotenv -e .env -- npm run register-commands -w @nice-hvh/bot"
+    "register-commands": "dotenv -e .env -- npm run register-commands -w @nice-hvh/bot",
+    "prod:build": "bash scripts/prod-build.sh",
+    "prod:db": "bash scripts/prod-db.sh",
+    "prod:start:bot": "bash scripts/prod-start-bot.sh",
+    "prod:start:web": "bash scripts/prod-start-web.sh"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0"

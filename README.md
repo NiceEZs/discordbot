@@ -130,18 +130,95 @@ Panel: zaloguj się Discordem → lista serwerów (Manage Guild) → ustawienia 
 
 ---
 
-## 3. Deploy na Ubuntu (zarys — później)
+## 3. Deploy na Ubuntu (produkcja 24/7)
 
-Self-host na domowym serwerze Ubuntu (decyzja zablokowana):
+Self-host u Nice: SSH `ssh -p 717 nice@192.168.55.48`, katalog `~/discordbot`, panel na **:3001** (3000 = Cloudflare). Postgres już przez `docker compose`. Sekrety tylko w lokalnym `.env` — **nigdy** w git / PR / czacie.
 
-1. Zainstaluj Node 20+, Docker (Postgres) lub systemowy PostgreSQL.
-2. Sklonuj repo, ustaw `.env` produkcyjny (`NEXTAUTH_URL` = publiczny URL panelu).
-3. `npm ci && npm run build && npm run db:push` (lub migracje).
-4. Procesy: `pm2` / systemd — osobno `apps/bot` (`node dist/index.js`) i `apps/web` (`next start`).
-5. Reverse proxy (Caddy/Nginx) z HTTPS na panel; bot nie musi być publicznie wystawiony.
-6. Zaktualizuj Redirect URL OAuth w Developer Portal.
+Jednostki systemd: [`deploy/systemd/`](deploy/systemd/). Skrypty: [`scripts/prod-*.sh`](scripts/).
 
-Szczegółowy playbook deployu — w osobnym dokumencie / kolejnym etapie.
+### 3.1 Zatrzymaj stary `npm run dev` (jeśli jeszcze działa)
+
+Na serwerze (jako `nice`) wklej **cały** blok:
+
+```bash
+# Zabij procesy deweloperskie bota/panelu (tsx / next dev) — bezpieczne dla systemd
+pkill -f 'tsx watch src/index.ts' 2>/dev/null || true
+pkill -f 'next dev' 2>/dev/null || true
+pkill -f 'npm run dev' 2>/dev/null || true
+echo "Dev zatrzymany (lub nic nie działało). Sprawdź: ss -tlnp | grep -E '3000|3001' || true"
+```
+
+### 3.2 Pierwszy start produkcji (wklej i odpal)
+
+Załóż: masz już `~/discordbot` z `.env` i Postgres (`docker compose up -d`). Jeśli repo jest w innym miejscu — dostosuj ścieżki.
+
+```bash
+cd ~/discordbot
+
+# Kod z main (po merge PR z deployem)
+git fetch origin
+git checkout main
+git pull origin main
+
+# Uprawnienia skryptów + Postgres
+chmod +x scripts/*.sh scripts/lib.sh
+docker compose up -d
+
+# Build + bezpieczna migracja (migrate deploy; NIE resetuje bazy)
+bash scripts/prod-build.sh
+bash scripts/prod-db.sh
+
+# (opcjonalnie, raz po zmianie komend) rejestracja slash
+npm run register-commands
+
+# Zainstaluj jednostki systemd (wymaga sudo — hasło Nice)
+sudo cp deploy/systemd/discordbot-bot.service /etc/systemd/system/
+sudo cp deploy/systemd/discordbot-web.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now discordbot-bot.service discordbot-web.service
+
+# Status
+systemctl --no-pager --full status discordbot-bot.service discordbot-web.service
+echo "Panel: http://192.168.55.48:3001"
+```
+
+Jeśli baza była wcześniej tylko przez `db push` i `migrate deploy` się wywali — **raz**, świadomie:
+
+```bash
+cd ~/discordbot && bash scripts/prod-db.sh --push
+```
+
+### 3.3 Przydatne komendy na co dzień
+
+```bash
+# Restart po update kodu
+cd ~/discordbot && git pull origin main && bash scripts/prod-build.sh && bash scripts/prod-db.sh
+sudo systemctl restart discordbot-bot discordbot-web
+
+# Logi na żywo
+journalctl -u discordbot-bot -u discordbot-web -f
+
+# Stop / start
+sudo systemctl stop discordbot-bot discordbot-web
+sudo systemctl start discordbot-bot discordbot-web
+```
+
+### 3.4 Po merge PR — jaki commit jest na serwerze?
+
+Na Ubuntu:
+
+```bash
+cd ~/discordbot && git fetch origin && git checkout main && git pull origin main && git rev-parse HEAD
+```
+
+Porównaj SHA z GitHub → `main`. To jest „merge SHA” wdrożenia.
+
+### 3.5 Uwagi
+
+- `EnvironmentFile=/home/nice/discordbot/.env` w unitach (systemd **nie** rozwija `~`).
+- Panel: `HOSTNAME=0.0.0.0` + `PORT=3001`.
+- `NEXTAUTH_URL` w `.env` musi być `http://192.168.55.48:3001` (albo Twoja domena HTTPS) + ten sam Redirect w Discord Developer Portal.
+- Alternatywa pm2 (jeśli wolisz zamiast systemd): po `prod-build.sh` / `prod-db.sh` → `pm2 start scripts/prod-start-bot.sh --name discordbot-bot` oraz `pm2 start scripts/prod-start-web.sh --name discordbot-web` + `pm2 save`.
 
 ---
 
