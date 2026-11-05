@@ -11,6 +11,10 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID ?? "",
       clientSecret: process.env.DISCORD_CLIENT_SECRET ?? "",
+      // Discord returns RFC 9207 `iss=https://discord.com` on the callback.
+      // openid-client (next-auth v4) requires issuer metadata or it throws
+      // OAUTH_CALLBACK_ERROR: "issuer must be configured on the issuer".
+      issuer: "https://discord.com",
       authorization: { params: { scope: scopes } },
       profile(profile) {
         return {
