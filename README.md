@@ -79,21 +79,20 @@ npm run register-commands
 # Terminal A — bot (też buduje @nice-hvh/db przed startem)
 npm run dev:bot
 
-# Terminal B — panel (domyślnie http://localhost:3000)
+# Terminal B — panel (http://localhost:3001)
 npm run dev:web
 ```
 
-Panel nasłuchuje na porcie **3000** (domyślny Next.js). Jeśli 3000 jest zajęte (np. Cloudflare), albo chcesz dostęp z LAN:
+Panel nasłuchuje na porcie **3001** (3000 zostawione na inne projekty, np. Cloudflare).
 
 ```bash
-# Inny port (z roota monorepo)
-npm run dev -w @nice-hvh/web -- --port 3001
-
 # LAN — bind na wszystkie interfejsy (telefon / inna maszyna w sieci)
-npm run dev -w @nice-hvh/web -- --hostname 0.0.0.0 --port 3001
+npm run dev -w @nice-hvh/web -- --hostname 0.0.0.0
 
-# Albo z katalogu apps/web
-cd apps/web && npm run dev -- --hostname 0.0.0.0 --port 3001
+# Produkcja (po build)
+npm run start -w @nice-hvh/web
+# LAN produkcja:
+npm run start:lan -w @nice-hvh/web
 ```
 
 W `.env` ustaw `NEXTAUTH_URL` na ten sam origin co w przeglądarce

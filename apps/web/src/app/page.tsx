@@ -1,29 +1,28 @@
 import Link from "next/link";
-import { Header } from "@/components/Header";
+import { AuthChrome } from "@/components/AuthChrome";
 import { getSession } from "@/lib/session";
 
 export default async function HomePage() {
   const session = await getSession();
 
   return (
-    <>
-      <Header />
-      <main className="container hero">
+    <AuthChrome>
+      <div className="auth-card">
         <h1>Panel bota Discord</h1>
         <p>
-          Moderacja, historia spraw i ustawienia serwera w jednym miejscu.
-          Zaloguj się kontem Discord z uprawnieniem zarządzania serwerem.
+          Moderacja, historia spraw i ustawienia serwera. Zaloguj się kontem
+          Discord z uprawnieniem zarządzania serwerem.
         </p>
         {session?.user ? (
-          <Link href="/dashboard" className="btn">
+          <Link href="/dashboard" className="btn btn-block">
             Przejdź do panelu
           </Link>
         ) : (
-          <Link href="/login" className="btn">
+          <Link href="/login" className="btn btn-block">
             Zaloguj przez Discord
           </Link>
         )}
-      </main>
-    </>
+      </div>
+    </AuthChrome>
   );
 }

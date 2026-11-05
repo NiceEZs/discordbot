@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/components/Header";
+import { EmptyState } from "@/components/EmptyState";
 import { GuildSettingsForm } from "@/components/GuildSettingsForm";
 import { requireSession } from "@/lib/session";
 import {
@@ -32,36 +32,37 @@ export default async function GuildSettingsPage({ params }: Props) {
 
   if (!guild?.settings) {
     return (
-      <>
-        <Header />
-        <main className="container">
-          <p className="flash error">
-            Serwer nie jest jeszcze w bazie. Uruchom bota na tym serwerze.
-          </p>
-          <Link href="/dashboard">← Wróć</Link>
-        </main>
-      </>
+      <main className="page">
+        <header className="page-header">
+          <h1>{discordGuild.name}</h1>
+          <p>Serwer nie jest jeszcze gotowy do konfiguracji.</p>
+        </header>
+        <EmptyState
+          title="Brak danych w bazie"
+          description="Uruchom bota na tym serwerze, żeby zsynchronizował guild i ustawienia."
+        />
+        <p style={{ marginTop: "1rem" }}>
+          <Link href="/dashboard" className="btn btn-ghost">
+            Wróć do serwerów
+          </Link>
+        </p>
+      </main>
     );
   }
 
   return (
-    <>
-      <Header />
-      <main className="container" style={{ paddingBottom: "3rem" }}>
-        <p className="muted">
-          <Link href="/dashboard">← Serwery</Link>
-        </p>
-        <h1 style={{ marginTop: 0 }}>{discordGuild.name}</h1>
+    <main className="page">
+      <header className="page-header">
+        <h1>{discordGuild.name}</h1>
+        <p>Ustawienia moderacji dla wybranego serwera.</p>
+      </header>
 
-        <nav className="tabs">
-          <Link href={`/dashboard/${guildId}`} className="active">
-            Ustawienia
-          </Link>
-          <Link href={`/dashboard/${guildId}/cases`}>Sprawy</Link>
-        </nav>
-
-        <section className="panel">
+      <section className="section">
+        <div className="section-head">
           <h2>Ustawienia guild</h2>
+          <p>Zmiany zapisują się w bazie i obowiązują od razu dla bota.</p>
+        </div>
+        <div className="form-surface">
           <GuildSettingsForm
             guildId={guildId}
             initial={{
@@ -72,8 +73,8 @@ export default async function GuildSettingsPage({ params }: Props) {
               locale: guild.settings.locale,
             }}
           />
-        </section>
-      </main>
-    </>
+        </div>
+      </section>
+    </main>
   );
 }
