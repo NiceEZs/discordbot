@@ -62,13 +62,15 @@ cp .env.example .env
 docker compose up -d
 
 # Wygeneruj klienta Prisma + wypchnij schemat do DB
+# (skrypty ładują root `.env` przez dotenv-cli — wymagany `DATABASE_URL`)
 npm run db:generate
 npm run db:push
 
-# Zarejestruj slash commands (wymaga DISCORD_TOKEN + DISCORD_CLIENT_ID)
-npm run register-commands -w @nice-hvh/bot
+# Zarejestruj slash commands (najpierw buduje @nice-hvh/db → dist/)
+# Wymaga DISCORD_TOKEN + DISCORD_CLIENT_ID w `.env`
+npm run register-commands
 
-# Terminal A — bot
+# Terminal A — bot (też buduje @nice-hvh/db przed startem)
 npm run dev:bot
 
 # Terminal B — panel (http://localhost:3000)
@@ -83,6 +85,7 @@ npm run dev:web
 | `npm run build` | Build db + bot + web |
 | `npm run db:studio` | Prisma Studio |
 | `npm run db:migrate` | Migracje Prisma (`migrate dev`) |
+| `npm run register-commands` | Build `@nice-hvh/db` + rejestracja slash commands |
 
 ### Komendy bota (slash)
 
