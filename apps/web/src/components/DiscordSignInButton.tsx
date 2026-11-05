@@ -15,7 +15,7 @@ export function DiscordSignInButton({ callbackUrl = "/dashboard" }: Props) {
   return (
     <button
       type="button"
-      className="btn"
+      className="btn btn-block"
       onClick={() => signIn("discord", { callbackUrl })}
     >
       Kontynuuj z Discord

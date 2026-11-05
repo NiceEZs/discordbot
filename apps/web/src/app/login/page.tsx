@@ -1,4 +1,4 @@
-import { Header } from "@/components/Header";
+import { AuthChrome } from "@/components/AuthChrome";
 import { DiscordSignInButton } from "@/components/DiscordSignInButton";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -31,17 +31,16 @@ export default async function LoginPage({
       `Logowanie nie powiodło się (${errorKey}). Sprawdź Client ID/Secret i Redirect URL w Discord Developer Portal.`);
 
   return (
-    <>
-      <Header />
-      <main className="container hero">
+    <AuthChrome>
+      <div className="auth-card">
         <h1>Logowanie</h1>
         <p>
-          Użyj konta Discord. Po zalogowaniu zobaczysz serwery, na których masz
-          uprawnienie Manage Server / Administrator i na których jest bot.
+          Po zalogowaniu zobaczysz serwery, na których masz Manage Server /
+          Administrator i na których jest bot.
         </p>
         {errorMessage ? <p className="flash error">{errorMessage}</p> : null}
         <DiscordSignInButton />
-      </main>
-    </>
+      </div>
+    </AuthChrome>
   );
 }

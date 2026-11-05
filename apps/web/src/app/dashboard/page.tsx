@@ -1,102 +1,80 @@
 import Link from "next/link";
-import { Header } from "@/components/Header";
+import { EmptyState } from "@/components/EmptyState";
 import { requireSession } from "@/lib/session";
-import {
-  canManageGuild,
-  fetchUserGuilds,
-  getAccountAccessToken,
-  guildIconUrl,
-} from "@/lib/discord";
-import { prisma } from "@nice-hvh/db";
+import { guildIconUrl } from "@/lib/discord";
+import { loadPanelGuilds } from "@/lib/panel-guilds";
 
 export default async function DashboardPage() {
   const session = await requireSession();
-  const token = await getAccountAccessToken(session.user.id);
-
-  let error: string | null = null;
-  let guilds: Awaited<ReturnType<typeof fetchUserGuilds>> = [];
-
-  if (!token) {
-    error =
-      "Brak tokenu Discord (scope guilds). Wyloguj się i zaloguj ponownie.";
-  } else {
-    try {
-      const all = await fetchUserGuilds(token);
-      guilds = all.filter((g) => canManageGuild(g.permissions));
-    } catch {
-      error = "Nie udało się pobrać listy serwerów z Discord API.";
-    }
-  }
-
-  const botGuildIds = new Set(
-    (
-      await prisma.guild.findMany({
-        select: { discordId: true },
-      })
-    ).map((g) => g.discordId),
+  const { manageable, withoutBot, error } = await loadPanelGuilds(
+    session.user.id,
   );
 
-  const manageable = guilds.filter((g) => botGuildIds.has(g.id));
-  const withoutBot = guilds.filter((g) => !botGuildIds.has(g.id));
-
   return (
-    <>
-      <Header />
-      <main className="container" style={{ paddingBottom: "3rem" }}>
-        <h1 style={{ marginTop: 0 }}>Twoje serwery</h1>
-        <p className="muted">
-          Pokazujemy serwery, na których masz Manage Server / Administrator i na
-          których bot już był online (zsynchronizowany w bazie).
+    <main className="page">
+      <header className="page-header">
+        <h1>Serwery</h1>
+        <p>
+          Serwery, na których masz Manage Server / Administrator i na których
+          bot jest już zsynchronizowany w bazie.
         </p>
+      </header>
 
-        {error ? <p className="flash error">{error}</p> : null}
+      {error ? <p className="flash error">{error}</p> : null}
 
-        <section className="panel" style={{ marginBottom: "1.5rem" }}>
+      <section className="section">
+        <div className="section-head">
           <h2>Gotowe do konfiguracji</h2>
-          {manageable.length === 0 ? (
-            <p className="muted">
-              Brak wspólnych serwerów. Zaproś bota i uruchom go lokalnie, żeby
-              zsynchronizował guild.
-            </p>
-          ) : (
-            <div className="guild-list">
-              {manageable.map((g) => {
-                const icon = guildIconUrl(g);
-                return (
-                  <Link key={g.id} href={`/dashboard/${g.id}`} className="guild-row">
-                    {icon ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img className="guild-icon" src={icon} alt="" />
-                    ) : (
-                      <div className="guild-icon">{g.name.slice(0, 1)}</div>
-                    )}
-                    <div>
-                      <strong>{g.name}</strong>
-                      <div className="muted" style={{ fontSize: "0.85rem" }}>
-                        {g.id}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
+          <p>Wybierz serwer, aby otworzyć ustawienia.</p>
+        </div>
 
-        {withoutBot.length > 0 ? (
-          <section className="panel">
+        {manageable.length === 0 ? (
+          <EmptyState
+            title="Brak wspólnych serwerów"
+            description="Zaproś bota na serwer i uruchom go lokalnie, żeby zsynchronizował guild w bazie."
+          />
+        ) : (
+          <div className="guild-list">
+            {manageable.map((g) => {
+              const icon = guildIconUrl(g);
+              return (
+                <Link
+                  key={g.id}
+                  href={`/dashboard/${g.id}`}
+                  className="guild-row"
+                >
+                  {icon ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="guild-icon lg" src={icon} alt="" />
+                  ) : (
+                    <div className="guild-icon lg">{g.name.slice(0, 1)}</div>
+                  )}
+                  <div className="meta">
+                    <strong>{g.name}</strong>
+                    <span>{g.id}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {withoutBot.length > 0 ? (
+        <section className="section">
+          <div className="section-head">
             <h2>Serwery bez bota w bazie</h2>
-            <p className="muted" style={{ marginTop: 0 }}>
+            <p>
               Bot nie był jeszcze na tych serwerach (lub baza jest pusta).
             </p>
-            <ul className="muted">
-              {withoutBot.map((g) => (
-                <li key={g.id}>{g.name}</li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-      </main>
-    </>
+          </div>
+          <ul className="plain-list">
+            {withoutBot.map((g) => (
+              <li key={g.id}>{g.name}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </main>
   );
 }

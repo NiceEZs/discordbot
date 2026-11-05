@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Header } from "@/components/Header";
+import { EmptyState } from "@/components/EmptyState";
 import { requireSession } from "@/lib/session";
 import {
   canManageGuild,
@@ -39,13 +39,21 @@ export default async function GuildCasesPage({ params }: Props) {
 
   if (!guild) {
     return (
-      <>
-        <Header />
-        <main className="container">
-          <p className="flash error">Serwer nie jest w bazie.</p>
-          <Link href="/dashboard">← Wróć</Link>
-        </main>
-      </>
+      <main className="page">
+        <header className="page-header">
+          <h1>{discordGuild.name}</h1>
+          <p>Serwer nie jest w bazie.</p>
+        </header>
+        <EmptyState
+          title="Brak serwera w bazie"
+          description="Uruchom bota na tym serwerze, żeby zaczął zapisywać sprawy moderacji."
+        />
+        <p style={{ marginTop: "1rem" }}>
+          <Link href="/dashboard" className="btn btn-ghost">
+            Wróć do serwerów
+          </Link>
+        </p>
+      </main>
     );
   }
 
@@ -56,59 +64,60 @@ export default async function GuildCasesPage({ params }: Props) {
   });
 
   return (
-    <>
-      <Header />
-      <main className="container" style={{ paddingBottom: "3rem" }}>
-        <p className="muted">
-          <Link href="/dashboard">← Serwery</Link>
-        </p>
-        <h1 style={{ marginTop: 0 }}>{discordGuild.name} — sprawy</h1>
+    <main className="page">
+      <header className="page-header">
+        <h1>Sprawy — {discordGuild.name}</h1>
+        <p>Ostatnie 50 wpisów z historii moderacji.</p>
+      </header>
 
-        <nav className="tabs">
-          <Link href={`/dashboard/${guildId}`}>Ustawienia</Link>
-          <Link href={`/dashboard/${guildId}/cases`} className="active">
-            Sprawy
-          </Link>
-        </nav>
-
-        <section className="panel">
+      <section className="section">
+        <div className="section-head">
           <h2>Historia moderacji</h2>
-          {cases.length === 0 ? (
-            <p className="muted">Brak spraw. Użyj /warn, /mute, /kick lub /ban.</p>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Akcja</th>
-                    <th>Cel</th>
-                    <th>Moderator</th>
-                    <th>Powód</th>
-                    <th>Data</th>
+          <p>Wpisy z komend /warn, /mute, /kick i /ban.</p>
+        </div>
+
+        {cases.length === 0 ? (
+          <EmptyState
+            title="Brak spraw"
+            description="Użyj /warn, /mute, /kick lub /ban na Discordzie — pojawią się tutaj."
+          />
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Akcja</th>
+                  <th>Cel</th>
+                  <th>Moderator</th>
+                  <th>Powód</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cases.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.caseNumber}</td>
+                    <td>
+                      <span className="badge">
+                        {ACTION_PL[c.action] ?? c.action}
+                      </span>
+                    </td>
+                    <td>
+                      <code>{c.targetDiscordId}</code>
+                    </td>
+                    <td>
+                      <code>{c.moderatorDiscordId}</code>
+                    </td>
+                    <td>{c.reason ?? "—"}</td>
+                    <td>{c.createdAt.toLocaleString("pl-PL")}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {cases.map((c) => (
-                    <tr key={c.id}>
-                      <td>{c.caseNumber}</td>
-                      <td>{ACTION_PL[c.action] ?? c.action}</td>
-                      <td>
-                        <code>{c.targetDiscordId}</code>
-                      </td>
-                      <td>
-                        <code>{c.moderatorDiscordId}</code>
-                      </td>
-                      <td>{c.reason ?? "—"}</td>
-                      <td>{c.createdAt.toLocaleString("pl-PL")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </main>
-    </>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
