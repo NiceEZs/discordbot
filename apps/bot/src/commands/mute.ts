@@ -5,6 +5,7 @@ import {
 } from "discord.js";
 import { createModCase, canModerate } from "../lib/moderation";
 import { getGuildSettings } from "../lib/guild";
+import { logModAction } from "../lib/logging";
 
 export const data = new SlashCommandBuilder()
   .setName("mute")
@@ -72,6 +73,16 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     target: targetUser,
     moderator: interaction.user,
     reason,
+    durationMinutes: minutes,
+  });
+
+  await logModAction({
+    guild: interaction.guild,
+    action: "MUTE",
+    target: targetUser,
+    moderator: interaction.user,
+    reason,
+    caseNumber: modCase.caseNumber,
     durationMinutes: minutes,
   });
 

@@ -3,26 +3,30 @@ import {
   Collection,
   Events,
   GatewayIntentBits,
+  Partials,
 } from "discord.js";
 import { env } from "./env";
 import { commandMap, type Command } from "./commands";
 import { onReady } from "./events/ready";
 import { onGuildCreate } from "./events/guildCreate";
+import { onGuildMemberAdd } from "./events/guildMemberAdd";
+import { onGuildMemberRemove } from "./events/guildMemberRemove";
+import { registerLoggingEvents } from "./events/loggingEvents";
 
-// Phase 2+: leveling, tickets, automod, logging
-// Phase 3: music — nie implementować w MVP
+// Phase 2: logging + welcome/goodbye (wymaga Server Members Intent w Portalu)
+// Phase 2b+: reaction roles, custom commands
+// Phase 3: music
 //
-// MVP slash moderation only needs Guilds. Do NOT request privileged intents
-// (GuildMembers / MessageContent) unless they are also enabled in the Discord
-// Developer Portal — otherwise the gateway closes with "Used disallowed intents".
-// Member lookups for /warn /mute /kick /ban use REST fetch-by-id and work without
-// Server Members Intent.
+// GuildMembers is privileged — enable "Server Members Intent" in Discord
+// Developer Portal → Bot before starting, or the gateway closes with
+// "Used disallowed intents".
 
 async function main() {
   env.databaseUrl();
 
   const client = new Client({
-    intents: [GatewayIntentBits.Guilds],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+    partials: [Partials.GuildMember],
   });
 
   const commands = new Collection<string, Command>();
@@ -35,6 +39,9 @@ async function main() {
   });
 
   client.on(Events.GuildCreate, onGuildCreate);
+  client.on(Events.GuildMemberAdd, onGuildMemberAdd);
+  client.on(Events.GuildMemberRemove, onGuildMemberRemove);
+  registerLoggingEvents(client);
 
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) return;

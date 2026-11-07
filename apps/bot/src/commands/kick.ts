@@ -5,6 +5,7 @@ import {
 } from "discord.js";
 import { createModCase, canModerate } from "../lib/moderation";
 import { getGuildSettings } from "../lib/guild";
+import { logModAction } from "../lib/logging";
 
 export const data = new SlashCommandBuilder()
   .setName("kick")
@@ -68,6 +69,15 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     target: targetUser,
     moderator: interaction.user,
     reason,
+  });
+
+  await logModAction({
+    guild: interaction.guild,
+    action: "KICK",
+    target: targetUser,
+    moderator: interaction.user,
+    reason,
+    caseNumber: modCase.caseNumber,
   });
 
   await interaction.reply({

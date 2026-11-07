@@ -1,17 +1,17 @@
 # Nice HVH — Discord bot + panel WWW
 
-Monorepo MVP: bot Discord (moderacja) + panel administracyjny w języku polskim.
+Monorepo: bot Discord (moderacja + logging + welcome/goodbye) + panel administracyjny PL.
 
 **Stack:** Node.js · TypeScript · discord.js · Next.js (App Router) · PostgreSQL · Prisma · NextAuth (Discord OAuth)
 
-> Poza MVP (na później): leveling, tickets, reaction roles, automod, pełne logi, **music (Phase 3)**.
+> Na później (Phase 2b+ / 3): leveling, tickets, reaction roles, automod, message-content logs, **music (Phase 3)**.
 
 ---
 
 ## Struktura
 
 ```
-apps/bot      — proces bota (slash: warn/mute/kick/ban/cases)
+apps/bot      — proces bota (slash: warn/mute/kick/ban/cases + logging/welcome)
 apps/web      — panel Next.js (PL) + API
 packages/db   — Prisma schema + client
 ```
@@ -31,11 +31,13 @@ packages/db   — Prisma schema + client
 
 1. **New Application** → nadaj nazwę bota.
 2. Zakładka **Bot** → Add Bot → skopiuj **Bot Token** → wklej do `.env` jako `DISCORD_TOKEN`.
-3. **Privileged Gateway Intents (MVP):** zostaw **wyłączone**
-   (**Server Members Intent**, **Message Content Intent**, **Presence Intent**).
-   Bot MVP używa tylko intentu `Guilds` + slash commands; fetch członka po ID
-   działa bez Server Members Intent. Włączenie intentu w kodzie bez przełącznika
-   w Portalu kończy się crashem `Used disallowed intents`.
+3. **Privileged Gateway Intents (Phase 2):**
+   - **Server Members Intent** → **WŁĄCZ** (wymagane do welcome/goodbye i logów join/leave)
+   - **Message Content Intent** → wyłączone (na razie niepotrzebne)
+   - **Presence Intent** → wyłączone
+   
+   Kod prosi o `Guilds` + `GuildMembers`. Intent w kodzie **bez** przełącznika w Portalu
+   kończy się crashem `Used disallowed intents`. Po zmianie intentów zrestartuj bota.
 4. Zakładka **OAuth2** → **Client ID** i **Client Secret** → `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`.
 5. OAuth2 → Redirects → dodaj **dokładnie** ten sam URL co zbuduje NextAuth
    (`{NEXTAUTH_URL}/api/auth/callback/discord`), np.:
@@ -50,12 +52,6 @@ packages/db   — Prisma schema + client
    - Scopes: `bot`, `applications.commands`
    - Permissions: `Kick Members`, `Ban Members`, `Moderate Members`, `Manage Messages`, `Send Messages`, `Embed Links`, `View Channels`
 7. Otwórz wygenerowany link i zaproś bota na serwer testowy.
-
-**Później (Phase 2+):** jeśli dodasz eventy `guildMemberAdd` / pełną listę członków
-albo czytanie treści wiadomości (automod), wtedy w Portalu włącz
-**Bot → Privileged Gateway Intents → Server Members Intent** i/lub
-**Message Content Intent**, a dopiero potem dodaj odpowiadające `GatewayIntentBits`
-w `apps/bot/src/index.ts`.
 
 **Nie wklejaj tokenów do czatu, PR ani publicznego repo.** Tylko lokalny `.env` / sekrety na serwerze.
 
@@ -121,12 +117,21 @@ W `.env` ustaw `NEXTAUTH_URL` na ten sam origin co w przeglądarce
 
 ### Komendy bota (slash)
 
-- `/warn` — ostrzeżenie + zapis case
+- `/warn` — ostrzeżenie + zapis case (+ log jeśli włączony)
 - `/mute` — timeout Discord + case
 - `/kick` / `/ban` — kick/ban + case
 - `/cases` — ostatnie sprawy
 
+### Panel — ustawienia guild
+
+- **Moderacja** — włącz/wyłącz, domyślny mute, rola mods
+- **Logowanie** — kanał logów + przełączniki (mod, join/leave, ban/unban, kanały, role)
+- **Welcome / Goodbye** — kanał + szablon (`{user}`, `{user.tag}`, `{user.mention}`, `{server}`, `{memberCount}`)
+
 Panel: zaloguj się Discordem → lista serwerów (Manage Guild) → ustawienia + lista spraw.
+
+Po deployu Phase 2: `npm run db:push` (lub `bash scripts/prod-db.sh`) i w Portalu włącz
+**Server Members Intent**, potem restart `discordbot-bot`.
 
 ---
 

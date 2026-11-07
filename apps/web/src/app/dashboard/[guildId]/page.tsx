@@ -50,11 +50,16 @@ export default async function GuildSettingsPage({ params }: Props) {
     );
   }
 
+  const s = guild.settings;
+
   return (
     <main className="page">
       <header className="page-header">
         <h1>{discordGuild.name}</h1>
-        <p>Ustawienia moderacji dla wybranego serwera.</p>
+        <p>
+          Moderacja, logowanie oraz wiadomości welcome / goodbye dla tego
+          serwera.
+        </p>
       </header>
 
       <section className="section">
@@ -62,15 +67,28 @@ export default async function GuildSettingsPage({ params }: Props) {
           <h2>Ustawienia guild</h2>
           <p>Zmiany zapisują się w bazie i obowiązują od razu dla bota.</p>
         </div>
-        <div className="form-surface">
+        <div className="form-surface form-surface-flush">
           <GuildSettingsForm
             guildId={guildId}
             initial={{
-              moderationEnabled: guild.settings.moderationEnabled,
-              modLogChannelId: guild.settings.modLogChannelId,
-              moderatorRoleId: guild.settings.moderatorRoleId,
-              muteDefaultMinutes: guild.settings.muteDefaultMinutes,
-              locale: guild.settings.locale,
+              moderationEnabled: s.moderationEnabled,
+              moderatorRoleId: s.moderatorRoleId,
+              muteDefaultMinutes: s.muteDefaultMinutes,
+              locale: s.locale,
+              loggingEnabled: s.loggingEnabled,
+              modLogChannelId: s.modLogChannelId,
+              logModActions: s.logModActions,
+              logMemberJoin: s.logMemberJoin,
+              logMemberLeave: s.logMemberLeave,
+              logBans: s.logBans,
+              logChannels: s.logChannels,
+              logRoles: s.logRoles,
+              welcomeEnabled: s.welcomeEnabled,
+              welcomeChannelId: s.welcomeChannelId,
+              welcomeMessage: s.welcomeMessage,
+              goodbyeEnabled: s.goodbyeEnabled,
+              goodbyeChannelId: s.goodbyeChannelId,
+              goodbyeMessage: s.goodbyeMessage,
             }}
           />
         </div>
