@@ -80,11 +80,28 @@ model GuildSettings {
   guildId            String  @unique
   locale             String  @default("pl")
   moderationEnabled  Boolean @default(true)
-  /// Kanał logów moderacji (placeholder — pełne logging w Phase 2)
-  modLogChannelId    String?
   /// Rola z uprawnieniami moderatorskimi (opcjonalnie, poza Discord perms)
   moderatorRoleId    String?
   muteDefaultMinutes Int     @default(60)
+
+  /// Logging — wspólny kanał na akcje mod + kluczowe eventy
+  loggingEnabled   Boolean @default(false)
+  modLogChannelId  String?
+  logModActions    Boolean @default(true)
+  logMemberJoin    Boolean @default(true)
+  logMemberLeave   Boolean @default(true)
+  logBans          Boolean @default(true)
+  logChannels      Boolean @default(false)
+  logRoles         Boolean @default(false)
+
+  /// Welcome / goodbye
+  welcomeEnabled   Boolean @default(false)
+  welcomeChannelId String?
+  /// Szablon: {user} {user.tag} {user.mention} {server} {memberCount}
+  welcomeMessage   String? @db.Text
+  goodbyeEnabled   Boolean @default(false)
+  goodbyeChannelId String?
+  goodbyeMessage   String? @db.Text
 
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 }
